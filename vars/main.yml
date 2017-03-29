@@ -3,5 +3,6 @@ cloud_name: vnfasterisk
 cloud_region_name: regionOne
 cloud_availability_zone: nova
 cloud_image: ea94c241-7fc9-48bb-833b-8c90a767fff6
-cloud_flavor: m1.medium
+cloud_flavor: m1.xlarge
 cloud_key_name: leifmadsen
+public_key_file_path: "/home/lmadsen/.ssh/id_rsa.pub"

@@ -73,7 +73,7 @@
           network_name: "{{ private_network.name }}"
           enable_dhcp: true
           allocation_pool_start: "{{ private_network.subnet.allocation_pool_start }}"
-          allocation_pool_end: "{{ private_network.subnet.allocation_pool_start }}"
+          allocation_pool_end: "{{ private_network.subnet.allocation_pool_end }}"
           cidr: "{{ private_network.subnet.range }}"
 
     - name: Create router for public and private networks
@@ -86,7 +86,7 @@
           cloud: "{{ cloud_name }}"
           name: "{{ router.name }}"
           project: "{{ project_name }}"
-          network: "{{ public_name }}"
+          network: "{{ public_network.name }}"
           external_fixed_ips:
               - subnet: "{{ public_network.subnet.name }}"
                 ip: "{{ router.fixed_ip }}"

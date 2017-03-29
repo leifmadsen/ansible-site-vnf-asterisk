@@ -7,6 +7,12 @@
     - vars/main.yml
 
   tasks:
+    - name: Install keypair for instance
+      os_keypair:
+        cloud: "{{ cloud_name }}"
+        name: "{{ cloud_key_name }}"
+        public_key_file: "{{ public_key_file_path }}"
+
     - name: Deploy an instance
       os_server:
         state: present
@@ -20,7 +26,7 @@
         volume_size: 8
         flavor: "{{ cloud_flavor }}"
         key_name: "{{ cloud_key_name }}"
-        network: 6efa66eb-9251-41a7-88c3-902753b4940f
+        network: private
         security_groups: "{{ item.security_groups }}"
         floating_ip_pools: public
         timeout: 300
