@@ -1,0 +1,32 @@
+cloud_name: overcloud
+
+project_name: vnf-asterisk
+project_description: VNF Asterisk Project
+project_admin_username: leifmadsen
+project_admin_password: welcome
+project_admin_email: admin@nfvpe.site
+
+public_network:
+  name: public
+  provider_physical_network: datacentre
+  provider_segmentation_id: 10
+  provider_network_type: vlan
+  subnet:
+    name: sub_public
+    allocation_pool_start: 192.168.10.64
+    allocation_pool_end: 192.168.10.127
+    gateway: 192.168.10.1
+    range: 192.168.10.0/24
+private_network:
+  name: private
+  subnet:
+    name: sub_private_vnf_asterisk
+    allocation_pool_start: 10.0.0.100
+    allocation_pool_end: 10.0.0.199
+    range: 10.0.0.0/24
+    nameserver_1: 8.8.8.8
+    nameserver_2: 8.8.4.4
+
+router:
+  name: "provider"
+  fixed_ip: 192.168.10.254

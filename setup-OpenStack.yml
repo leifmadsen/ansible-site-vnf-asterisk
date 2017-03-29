@@ -4,7 +4,7 @@
 
   gather_facts: false
   vars_files:
-      - vars/main.yml
+      - vars/openstack.yml
 
   tasks:
     - name: Create project
@@ -18,7 +18,7 @@
 
     - name: Create user for project
       # openstack user create leifmadsen --project tenantA --password welcome --email leif@tenantA.tld
-      os_project:
+      os_user:
           cloud: "{{ cloud_name }}"
           name: "{{ project_admin_username }}"
           password: "{{ project_admin_password }}"
@@ -34,7 +34,7 @@
           project: "{{ project_name }}"
           name: "{{ public_network.name }}"
           provider_physical_network: "{{ public_network.provider_physical_network }}"
-          provider_segment_id: "{{ public_network.provider_segment_id }}"
+          provider_segmentation_id: "{{ public_network.provider_segmentation_id }}"
           provider_network_type: "{{ public_network.provider_network_type }}"
           external: true
 
