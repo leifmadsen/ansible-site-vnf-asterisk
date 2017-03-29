@@ -1,0 +1,2 @@
+instance_list:
+  - { name: asterisk1, security_groups: "default" }

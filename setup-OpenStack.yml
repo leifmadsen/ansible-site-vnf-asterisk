@@ -1,0 +1,98 @@
+---
+- name: OpenStack post-deployment configuration
+  hosts: localhost
+
+  gather_facts: false
+  vars_files:
+      - vars/main.yml
+
+  tasks:
+    - name: Create project
+      # openstack project create tenantA
+      os_project:
+          cloud: "{{ cloud_name }}"
+          name: "{{ project_name }}"
+          description: "{{ project_description }}"
+          state: present
+      register: project_result
+
+    - name: Create user for project
+      # openstack user create leifmadsen --project tenantA --password welcome --email leif@tenantA.tld
+      os_project:
+          cloud: "{{ cloud_name }}"
+          name: "{{ project_admin_username }}"
+          password: "{{ project_admin_password }}"
+          email: "{{ project_admin_email }}"
+          default_project: "{{ project_name }}"
+      register: project_admin_result
+
+    - name: Create project public network
+      # openstack network create public --external --provider-network-type vlan \
+      #   --provider-physical-network datacentre --provider-segment 10 --project tenantA
+      os_network:
+          cloud: "{{ cloud_name }}"
+          project: "{{ project_name }}"
+          name: "{{ public_network.name }}"
+          provider_physical_network: "{{ public_network.provider_physical_network }}"
+          provider_segment_id: "{{ public_network.provider_segment_id }}"
+          provider_network_type: "{{ public_network.provider_network_type }}"
+          external: true
+
+    - name: Create project public network subnet
+      # openstack subnet create sub_public --network public --dhcp --project tenantA\
+      #     --allocation-pool start=192.168.10.64,end=192.168.10.127 \
+      #     --gateway 192.168.10.1 --subnet-range 192.168.10.0/24
+      os_subnet:
+          cloud: "{{ cloud_name }}"
+          name: "{{ public_network.subnet.name }}"
+          project: "{{ project_name }}"
+          network_name: "{{ public_network.name }}"
+          enable_dhcp: true
+          allocation_pool_start: "{{ public_network.subnet.allocation_pool_start }}"
+          allocation_pool_end: "{{ public_network.subnet.allocation_pool_end }}"
+          gateway_ip: "{{ public_network.subnet.gateway }}"
+          cidr: "{{ public_network.subnet.range }}"
+
+    - name: Create project private network
+      # openstack network create private --project tenantA --internal
+      os_network:
+          cloud: "{{ cloud_name }}"
+          name: "{{ private_network.name }}"
+          project: "{{ project_name }}"
+          external: false
+
+    - name: Create project private network subnet
+      # openstack subnet create sub_private_tenantA --project tenantA \
+      #   --network private --allocation-pool start=10.0.0.100,end=10.0.0.199 \
+      #   --dns-nameserver 8.8.8.8 --dns-nameserver 8.8.4.4 \
+      #   --subnet-range 10.0.0.0/24 --dhcp
+      os_subnet:
+          cloud: "{{ cloud_name }}"
+          name: "{{ private_network.subnet.name }}"
+          project: "{{ project_name }}"
+          network_name: "{{ private_network.name }}"
+          enable_dhcp: true
+          allocation_pool_start: "{{ private_network.subnet.allocation_pool_start }}"
+          allocation_pool_end: "{{ private_network.subnet.allocation_pool_start }}"
+          cidr: "{{ private_network.subnet.range }}"
+
+    - name: Create router for public and private networks
+      # openstack router create --project tenantA provider
+      # openstack router add subnet provider sub_private_tenantA
+      # neutron router-gateway-set \
+      #   --fixed-ip subnet_id=sub_public,ip_address=192.168.10.254 \
+      #  provider public
+      os_router:
+          cloud: "{{ cloud_name }}"
+          name: "{{ router.name }}"
+          project: "{{ project_name }}"
+          network: "{{ public_name }}"
+          external_fixed_ips:
+              - subnet: "{{ public_network.subnet.name }}"
+                ip: "{{ router.fixed_ip }}"
+          interfaces:
+              - "{{ private_network.subnet.name }}"
+
+#    - name: Upload test image
+
+#    - name: Create flavors

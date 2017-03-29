@@ -1,0 +1,7 @@
+# site.yml
+---
+
+- include: setup-OpenStack.yml
+#- include: openstack.yml
+#- include: asterisk.yml
+

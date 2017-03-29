@@ -1,0 +1,58 @@
+---
+- name: Install Asterisk
+  hosts: asterisk*
+  gather_facts: true
+  become: true
+  become_user: root
+
+  tasks:
+    - name: Update system packages
+      package:
+        name: '*'
+        state: latest
+      register: system_package_update
+
+    - name: Install NTP
+      package:
+        name: ntp
+        state: present
+      register: ntp_installed
+
+    - debug: var=ntp_installed
+
+    - name: Update time
+      command: ntpdate pool.ntp.org
+      when: ntp_installed.changed
+
+    - name: Enable and Start NTP service
+      systemd:
+        name: ntpd.service
+        state: started
+        enabled: true
+
+    - name: Install EPEL and vim-enhanced
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - epel-release
+        - vim-enhanced
+
+    - name: Reboot server for latest packages
+      command: sleep 1 && systemctl reboot
+      async: 1
+      poll: 0
+      ignore_errors: true
+      register: reboot
+      when: system_package_update.changed
+
+    - name: Wait for server to come back
+      become: false
+      local_action: wait_for
+      args:
+        port: 22
+        host: "{{ hostvars[inventory_hostname]['ansible_host'] }}"
+        state: started
+        delay: 30
+        timeout: 600
+        connect_timeout: 60
