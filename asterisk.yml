@@ -18,8 +18,6 @@
         state: present
       register: ntp_installed
 
-    - debug: var=ntp_installed
-
     - name: Update time
       command: ntpdate pool.ntp.org
       when: ntp_installed.changed
