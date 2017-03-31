@@ -5,6 +5,9 @@
   gather_facts: false
   vars_files:
       - vars/openstack.yml
+      - vars/flavors.yml
+      - vars/images.yml
+
 
   tasks:
     - name: Create project
@@ -75,6 +78,9 @@
           allocation_pool_start: "{{ private_network.subnet.allocation_pool_start }}"
           allocation_pool_end: "{{ private_network.subnet.allocation_pool_end }}"
           cidr: "{{ private_network.subnet.range }}"
+          dns_nameservers:
+              - 8.8.8.8
+              - 8.8.4.4
 
     - name: Create router for public and private networks
       # openstack router create --project tenantA provider
@@ -93,6 +99,34 @@
           interfaces:
               - "{{ private_network.subnet.name }}"
 
-#    - name: Upload test image
+    - name: Download Images
+      get_url:
+          url: "{{ item.url }}"
+          dest: files/{{ item.filename }}
+      delegate_to: localhost
+      with_items: "{{ image_list }}"
 
-#    - name: Create flavors
+    - name: Upload public images
+      os_image:
+          cloud: "{{ cloud_name }}"
+          name: "{{ item.name }}"
+          container_format: "{{ item.container_format | default('bare') }}"
+          disk_format: "{{ item.disk_format | default ('raw') }}"
+          state: present
+          filename: files/{{ item.filename }}
+          is_public: true
+          properties:
+              cpu_arch: "{{ item.arch }}"
+              distro: "{{ item.distro }}"
+      with_items: "{{ image_list }}"
+
+    - name: Create flavors
+      os_nova_flavor:
+          cloud: "{{ cloud_name }}"
+          state: present
+          name: "{{ item.name }}"
+          ram: "{{ item.ram }}"
+          vcpus: "{{ item.vcpus }}"
+          disk: "{{ item.disk }}"
+          ephemeral: "{{ item.ephemeral }}"
+      with_items: "{{ flavor_list }}"

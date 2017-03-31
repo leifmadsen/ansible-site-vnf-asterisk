@@ -13,6 +13,24 @@
         name: "{{ cloud_key_name }}"
         public_key_file: "{{ public_key_file_path }}"
 
+    - name: Open ICMP in default security group
+      os_security_group_rule:
+          cloud: "{{ cloud_name }}"
+          security_group: "default"
+          protocol: icmp
+          port_range_min: -1
+          port_range_max: -1
+          remote_ip_prefix: 0.0.0.0/0
+
+    - name: Open SSH in default security group
+      os_security_group_rule:
+          cloud: "{{ cloud_name }}"
+          security_group: "default"
+          protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+          remote_ip_prefix: 0.0.0.0/0
+
     - name: Deploy an instance
       os_server:
         state: present
